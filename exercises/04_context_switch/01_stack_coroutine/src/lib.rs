@@ -1,4 +1,3 @@
-#![feature(naked_functions_rustic_abi)]
 //! # Stackful Coroutine and Context Switch (riscv64)
 //!
 //! In this exercise, you implement the minimal context switch using inline assembly,
@@ -64,7 +63,7 @@ impl TaskContext {
     /// - Leave `s0`–`s11` zero; they will be loaded on switch.
     pub fn init(&mut self, stack_top: usize, entry: usize) {
         self.ra = entry as u64;
-        self.sp = (stack_top - 16) as u64;
+        self.sp = stack_top as u64;
     }
 }
 
@@ -74,7 +73,7 @@ impl TaskContext {
 ///
 /// Must be `#[unsafe(naked)]` to prevent the compiler from generating a prologue/epilogue.
 #[unsafe(naked)]
-pub unsafe fn switch_context(old: &mut TaskContext, new: &TaskContext) {
+pub unsafe extern "C" fn switch_context(old: &mut TaskContext, new: &TaskContext) {
     core::arch::naked_asm!(
         // 保存当前任务的寄存器到 old (a0)
         "sd sp, 0(a0)",      // 保存 sp 到 old.sp (offset 0)
@@ -121,7 +120,7 @@ pub fn alloc_stack() -> (Vec<u8>, usize) {
     let mut buf = vec![0u8; STACK_SIZE];
     let ptr = buf.as_mut_ptr() as usize;
     
-    let top = (ptr + STACK_SIZE + 15) & !15;
+    let top = (ptr + STACK_SIZE) & !15;
     
     (buf, top)
 }
