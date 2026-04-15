@@ -64,7 +64,7 @@ impl TaskContext {
     /// - Leave `s0`–`s11` zero; they will be loaded on switch.
     pub fn init(&mut self, stack_top: usize, entry: usize) {
         self.ra = entry as u64;
-        self.sp = stack_top as u64;
+        self.sp = (stack_top - 16) as u64;
     }
 }
 
@@ -121,7 +121,7 @@ pub fn alloc_stack() -> (Vec<u8>, usize) {
     let mut buf = vec![0u8; STACK_SIZE];
     let ptr = buf.as_mut_ptr() as usize;
     
-    let top = (ptr + STACK_SIZE) & !15;  // 向下对齐到 16 字节
+    let top = (ptr + STACK_SIZE + 15) & !15;
     
     (buf, top)
 }
